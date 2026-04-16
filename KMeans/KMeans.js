@@ -5,6 +5,7 @@ class KMeans {
     this.k = k;
     this.predicts = [];
     this.clusters;
+    this.centroid;
   }
 
   distance(x, y) {
@@ -54,7 +55,7 @@ class KMeans {
     for (let c = 0; c < randomNumber.length; c++) {
       initCentroid.push(x[c]);
     }
-
+    this.centroid = initCentroid;
     let convergen = true;
     let count = 0;
     while (convergen) {
@@ -74,6 +75,7 @@ class KMeans {
         convergen = false;
       }
       initCentroid = newCentroid;
+      this.centroid = newCentroid;
       count += 1;
       distances = [];
     }
@@ -81,10 +83,38 @@ class KMeans {
   }
 }
 
+class Evaluation {
+  constructor(clusters, k) {
+    this.sse = 0;
+    this.k = k;
+    this.compute();
+  }
+
+  mean() {
+    let sum = 0;
+    let count = 0;
+
+    for (let i = 0; i < y.length; i++) {
+      if (y[i] === target) {
+        sum += x[i];
+        count++;
+      }
+    }
+  }
+
+  compute() {
+    let sse_cluster = [];
+    for (let i = 0; i < this.k; i++) {}
+  }
+}
+
 const k = 2;
 const kmeans = new KMeans(k);
 kmeans.fit(x, y);
 const clusters = kmeans.clusters;
+const evaluation = new Evaluation(clusters, 2);
+console.log(evaluation);
+
 clusters.forEach((cluster, index) => {
   for (let i = 0; i < k; i++) {
     if (cluster === i) {
