@@ -1,9 +1,11 @@
-import { x, y } from "./data.js";
+import { x_train, y_train, x_test, y_test } from "./data.js";
 
 class Nearest {
   constructor() {
     this.k = 1;
     this.predicts = [];
+    this.x_train;
+    this.y_train;
   }
 
   distance(x, y) {
@@ -26,30 +28,28 @@ class Nearest {
     return candidate;
   }
 
-  predict(distances) {
-    let sorted = distances.sort((a, b) => a[1] - b[1]);
-    let indexes = [];
-    sorted.splice(1, this.k).forEach((s) => indexes.push(s[0]));
-
-    let predicted = this.voting(indexes);
-
-    return predicted;
-  }
-
-  fit(x, y) {
-    for (let i = 0; i < x.length; i++) {
+  predict(x_test) {
+    for (let i = 0; i < x_test.length; i++) {
       let distances = [];
-      for (let j = 0; j < x.length; j++) {
-        let current = x[i];
-        let d = this.distance(current, x[j]);
-        distances.push([y[j], d]);
+      for (let j = 0; j < this.x_train.length; j++) {
+        let current = x_test[i];
+        let d = this.distance(current, this.x_train[j]);
+        distances.push([this.y_train[j], d]);
       }
-      let y_pred = this.predict(distances);
-      console.log(distances);
-
+      let sorted = distances.sort((a, b) => a[1] - b[1]);
+      let indexes = [];
+      sorted.splice(1, this.k).forEach((s) => indexes.push(s[0]));
+      let y_pred = this.voting(indexes);
       this.predicts.push(y_pred);
       distances = [];
     }
+
+    return this.predicts;
+  }
+
+  fit(x, y) {
+    this.x_train = x;
+    this.y_train = y;
   }
 }
 
@@ -69,10 +69,18 @@ class Evaluation {
   }
 
   matrix() {
-    this.tp = this.y_pred.filter((yp, i) => yp === y[i] && yp === 1).length;
-    this.tn = this.y_pred.filter((yp, i) => yp === y[i] && yp === 0).length;
-    this.fp = this.y_pred.filter((yp, i) => yp !== y[i] && y === 1).length;
-    this.fn = this.y_pred.filter((yp, i) => yp !== y[i] && y === 0).length;
+    this.tp = this.y_pred.filter(
+      (yp, i) => yp === this.y[i] && yp === 1,
+    ).length;
+    this.tn = this.y_pred.filter(
+      (yp, i) => yp === this.y[i] && yp === 0,
+    ).length;
+    this.fp = this.y_pred.filter(
+      (yp, i) => yp !== this.y[i] && this.y[i] === 1,
+    ).length;
+    this.fn = this.y_pred.filter(
+      (yp, i) => yp !== this.y[i] && this.y[i] === 0,
+    ).length;
   }
 
   confusion_matrix() {
@@ -92,8 +100,8 @@ class Evaluation {
 }
 
 const nearest = new Nearest();
-nearest.fit(x, y);
-const y_pred = nearest.predicts;
-const evaluation = new Evaluation(y, y_pred);
+nearest.fit(x_train, y_train);
+const y_pred = nearest.predict(x_test);
+const evaluation = new Evaluation(y_test, y_pred);
 evaluation.confusion_matrix();
 evaluation.report_classification();
